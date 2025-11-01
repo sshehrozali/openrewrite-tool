@@ -44,14 +44,14 @@ func detectProjectType() string {
 func runRewrite() {
 	// Hardcoded recipe details
 	recipeArtifact := "org.openrewrite.recipe:rewrite-spring:RELEASE"
-	activeRecipe := "org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0"
+	recipeYAML := "com.org.Custom"
 
 	// Construct the Maven command
 	cmd := exec.Command(
 		"mvn", "-U",
 		"org.openrewrite.maven:rewrite-maven-plugin:run",
 		fmt.Sprintf("-Drewrite.recipeArtifactCoordinates=%s", recipeArtifact),
-		fmt.Sprintf("-Drewrite.activeRecipes=%s", activeRecipe),
+		fmt.Sprintf("-Drewrite.activeRecipes=%s", recipeYAML),
 		"-Drewrite.exportDatatables=true",
 	)
 
@@ -59,7 +59,7 @@ func runRewrite() {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	fmt.Printf("🚀 Running OpenRewrite recipe: %s\n", activeRecipe)
+	fmt.Printf("🚀 Running Custom OpenRewrite recipes: %s\n", recipeYAML)
 
 	// Execute the command
 	if err := cmd.Run(); err != nil {
@@ -68,7 +68,7 @@ func runRewrite() {
 		os.Exit(1)
 	}
 
-	fmt.Println("✅ OpenRewrite executed successfully.")
+	fmt.Println("✅  OpenRewrite executed successfully.")
 }
 
 func runBuild(projectType string) error {
