@@ -1,0 +1,6 @@
+type: specs.openrewrite.org/v1beta/recipe
+name: com.org.JavaSpringRecipes
+displayName: Java Spring Boot recipes
+description: Recipe to migrate to Spring Boot 3
+recipeList:
+  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot

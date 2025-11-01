@@ -1,6 +1,0 @@
-type: specs.openrewrite.org/v1beta/recipe
-name: com.org.Custom
-displayName: Spring Boot recipes
-description: My custom recipes for Spring Boot
-recipeList:
-  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot
