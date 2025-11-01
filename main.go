@@ -16,11 +16,9 @@ func main() {
 		log.Println("❌ Not a recognized Spring Boot project (no pom.xml or build.gradle found).")
 		os.Exit(1)
 	}
+	fmt.Println("🔍 Detected project type: ", projectType)
 
-	if err := runRewrite("org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_3"); err != nil {
-		log.Printf("❌ Rewrite failed: %v\n", err)
-		os.Exit(1)
-	}
+	runRewrite()
 
 	if err := runBuild(projectType); err != nil {
 		log.Printf("❌ Build/tests failed: %v\n", err)
@@ -39,22 +37,45 @@ func detectProjectType() string {
 	}
 	if _, err := os.Stat("build.gradle.kts"); err == nil {
 		return "gradle"
-}
+	}
 	return ""
 }
 
-func runRewrite(recipe string) error {
-	cmd := exec.Command("rewrite", "run", "--activeRecipes", recipe)
+func runRewrite() {
+	// Hardcoded recipe details
+	recipeArtifact := "org.openrewrite.recipe:rewrite-spring:RELEASE"
+	activeRecipe := "org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0"
+
+	// Construct the Maven command
+	cmd := exec.Command(
+		"mvn", "-U",
+		"org.openrewrite.maven:rewrite-maven-plugin:run",
+		fmt.Sprintf("-Drewrite.recipeArtifactCoordinates=%s", recipeArtifact),
+		fmt.Sprintf("-Drewrite.activeRecipes=%s", activeRecipe),
+		"-Drewrite.exportDatatables=true",
+	)
+
+	// Output to terminal
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
-	return cmd.Run()
+
+	fmt.Printf("🚀 Running OpenRewrite recipe: %s\n", activeRecipe)
+
+	// Execute the command
+	if err := cmd.Run(); err != nil {
+
+		fmt.Printf("❌ Failed to run OpenRewrite: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("✅ OpenRewrite executed successfully.")
 }
 
 func runBuild(projectType string) error {
 	var cmd *exec.Cmd
 	switch projectType {
 	case "maven":
-		cmd = exec.Command("./mvnw", "test")
+		cmd = exec.Command("mvn", "clean", "install")
 	case "gradle":
 		cmd = exec.Command("./gradlew", "test")
 	default:
