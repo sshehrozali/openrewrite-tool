@@ -1,6 +1,8 @@
 type: specs.openrewrite.org/v1beta/recipe
-name: com.org.JavaSpringRecipes
-displayName: Java Spring Boot recipes
-description: Recipe to migrate to Spring Boot 3
+name: com.org.Custom
+displayName: Spring Boot recipes
+description: My custom recipes for Spring Boot
 recipeList:
   - org.openrewrite.java.spring.boot3.UpgradeSpringBoot
+  - org.openrewrite.java.migrate.UpgradeToJava21
+  - org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration

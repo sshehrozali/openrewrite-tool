@@ -18,7 +18,9 @@ func main() {
 	}
 	fmt.Println("🔍 Detected project type: ", projectType)
 
-	runRewrite()
+
+
+	runOpenRewrite()
 
 	if err := runBuild(projectType); err != nil {
 		log.Printf("❌ Build/tests failed: %v\n", err)
@@ -41,10 +43,15 @@ func detectProjectType() string {
 	return ""
 }
 
-func runRewrite() {
+func fetchRecipes() {
+	exec.Command("git", "clone", "")
+}
+
+
+func runOpenRewrite() {
 	// Hardcoded recipe details
 	recipeArtifact := "org.openrewrite.recipe:rewrite-spring:RELEASE"
-	recipeYAML := "com.org.Custom"
+	recipeYAML := "com.org.JavaSpringRecipes"
 
 	// Construct the Maven command
 	cmd := exec.Command(
