@@ -18,10 +18,21 @@ func main() {
 		log.Println("❌ Not a recognized Spring Boot project (no pom.xml or build.gradle found).")
 		os.Exit(1)
 	}
-	fmt.Println("🔍 Detected project type: ", projectType)
+	fmt.Println("🔍 Detected project type:", projectType)
 
-	fetchRecipes()
-	runOpenRewrite()
+	// Step 1: Fetch recipe
+	tmpFile, err := fetchRecipes()
+	if err != nil {
+		log.Fatalf("❌ Failed to fetch recipes: %v", err)
+	}
+	// Step 2: Defer cleanup after successful fetch
+	defer func() {
+		os.Remove(tmpFile)
+		fmt.Println("🧹 Cleaned up recipe YAML file:", tmpFile)
+	}()
+
+	// Step 3: Run rewrite + build
+	runOpenRewrite(tmpFile)
 
 	if err := runBuild(projectType); err != nil {
 		log.Printf("❌ Build/tests failed: %v\n", err)
@@ -44,44 +55,56 @@ func detectProjectType() string {
 	return ""
 }
 
-func fetchRecipes() {
+func fetchRecipes() (string, error) {
 	yamlURL := "https://raw.githubusercontent.com/sshehrozali/openrewrite-tool/main/java-spring-recipes/recipes.yml"
 	tmpFile := "rewrite.yml"
 
-	resp, _ := http.Get(yamlURL)
-
+	fmt.Println("📥 Downloading recipe file from", yamlURL)
+	resp, err := http.Get(yamlURL)
+	if err != nil {
+		return "", fmt.Errorf("failed to fetch YAML: %w", err)
+	}
 	defer resp.Body.Close()
 
-	data, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("unexpected HTTP status: %s", resp.Status)
+	}
 
-	os.WriteFile(tmpFile, data, 0644)
-	fmt.Println("📥 Downloaded recipe file from", yamlURL)
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("failed to read YAML: %w", err)
+	}
+
+	if err := os.WriteFile(tmpFile, data, 0644); err != nil {
+		return "", fmt.Errorf("failed to save YAML: %w", err)
+	}
+
+	fmt.Println("✅ Recipe file saved to:", tmpFile)
+	return tmpFile, nil
 }
 
-func runOpenRewrite() {
+func runOpenRewrite(configFile string) {
 	recipeArtifact := "org.openrewrite.recipe:rewrite-spring:RELEASE"
-	recipeYAML := "java-spring-recipes"
 
 	cmd := exec.Command(
 		"mvn", "-U",
 		"org.openrewrite.maven:rewrite-maven-plugin:run",
 		fmt.Sprintf("-Drewrite.recipeArtifactCoordinates=%s", recipeArtifact),
-		fmt.Sprintf("-Drewrite.activeRecipes=%s", recipeYAML),
+		fmt.Sprintf("-Drewrite.configLocation=%s", configFile),
 		"-Drewrite.exportDatatables=true",
 	)
 
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
-	fmt.Printf("🚀 Running Custom OpenRewrite recipes: %s\n", recipeYAML)
+	fmt.Printf("🚀 Running OpenRewrite using config: %s\n", configFile)
 
 	if err := cmd.Run(); err != nil {
-
 		fmt.Printf("❌ Failed to run OpenRewrite: %v\n", err)
 		os.Exit(1)
 	}
 
-	fmt.Println("✅  OpenRewrite executed successfully.")
+	fmt.Println("✅ OpenRewrite executed successfully.")
 }
 
 func runBuild(projectType string) error {
