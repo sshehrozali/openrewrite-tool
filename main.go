@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -18,8 +20,7 @@ func main() {
 	}
 	fmt.Println("🔍 Detected project type: ", projectType)
 
-
-
+	fetchRecipes()
 	runOpenRewrite()
 
 	if err := runBuild(projectType); err != nil {
@@ -44,16 +45,23 @@ func detectProjectType() string {
 }
 
 func fetchRecipes() {
-	exec.Command("git", "clone", "")
+	yamlURL := "https://raw.githubusercontent.com/sshehrozali/openrewrite-tool/main/java-spring-recipes/recipes.yml"
+	tmpFile := "rewrite.yml"
+
+	resp, _ := http.Get(yamlURL)
+
+	defer resp.Body.Close()
+
+	data, _ := io.ReadAll(resp.Body)
+
+	os.WriteFile(tmpFile, data, 0644)
+	fmt.Println("📥 Downloaded recipe file from", yamlURL)
 }
 
-
 func runOpenRewrite() {
-	// Hardcoded recipe details
 	recipeArtifact := "org.openrewrite.recipe:rewrite-spring:RELEASE"
-	recipeYAML := "com.org.JavaSpringRecipes"
+	recipeYAML := "java-spring-recipes"
 
-	// Construct the Maven command
 	cmd := exec.Command(
 		"mvn", "-U",
 		"org.openrewrite.maven:rewrite-maven-plugin:run",
@@ -62,13 +70,11 @@ func runOpenRewrite() {
 		"-Drewrite.exportDatatables=true",
 	)
 
-	// Output to terminal
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 
 	fmt.Printf("🚀 Running Custom OpenRewrite recipes: %s\n", recipeYAML)
 
-	// Execute the command
 	if err := cmd.Run(); err != nil {
 
 		fmt.Printf("❌ Failed to run OpenRewrite: %v\n", err)
