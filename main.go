@@ -90,7 +90,7 @@ func runOpenRewrite(configFile string) {
 		"mvn", "-U",
 		"org.openrewrite.maven:rewrite-maven-plugin:run",
 		fmt.Sprintf("-Drewrite.recipeArtifactCoordinates=%s", recipeArtifact),
-		fmt.Sprintf("-Drewrite.configLocation=%s", configFile),
+		fmt.Sprintf("-Drewrite.activeRecipes=%s", "java-spring-recipes"),
 		"-Drewrite.exportDatatables=true",
 	)
 

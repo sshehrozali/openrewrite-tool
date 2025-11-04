@@ -3,6 +3,6 @@ name: java-spring-recipes
 displayName: Spring Boot recipes
 description: My custom recipes for Spring Boot
 recipeList:
-  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot
+  - org.openrewrite.java.spring.boot3.UpgradeSpringBoot_3_0
   - org.openrewrite.java.migrate.UpgradeToJava21
   - org.openrewrite.java.spring.boot2.SpringBoot2JUnit4to5Migration
